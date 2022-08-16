@@ -62,7 +62,7 @@ class ImageTile (Tile):
         super().__init__(sidePatterns)
         self.image = image_surface
     def draw(self, screen : pygame.surface, pos : np.array, size : int) -> None:
-        screen.blit(pygame.transform.scale(self.image, (size, size)), (pos[0] * size, pos[1] * size))
+        screen.blit(pygame.transform.smoothscale(self.image, (size, size)), (pos[0] * size, pos[1] * size))
 
     def OnRotated(self) -> None:
         self.image = pygame.transform.rotate(self.image, -90)
