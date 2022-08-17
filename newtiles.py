@@ -132,7 +132,7 @@ class Manifold:
         choice.tiles = [choice.tiles[np.random.randint(len(choice.tiles))]]
 
 
-        # print("--- collapsed index", minIndex, "---")
+        print("--- collapsed index", minIndex, "---")
 
         # propagate the changes
         
