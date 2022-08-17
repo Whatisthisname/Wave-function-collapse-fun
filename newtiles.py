@@ -60,9 +60,7 @@ class ImageTile (Tile):
 
     def __init__(self, sidePatterns : List, image_surface : pygame.surface) -> None:
         super().__init__(sidePatterns)
-        self.image = image_surface.copy()
-
-
+        self.image = image_surface
 
     def draw(self, screen : pygame.surface, pos : np.array, size : int) -> None:
         screen.blit(pygame.transform.smoothscale(self.image, (size, size)), (pos[0] * size, pos[1] * size))
