@@ -58,9 +58,12 @@ class ImageTile (Tile):
 
     image : pygame.surface
 
-    def __init__(self, sidePatterns : List, image_surface : str) -> None:
+    def __init__(self, sidePatterns : List, image_surface : pygame.surface) -> None:
         super().__init__(sidePatterns)
-        self.image = image_surface
+        self.image = image_surface.copy()
+
+
+
     def draw(self, screen : pygame.surface, pos : np.array, size : int) -> None:
         screen.blit(pygame.transform.smoothscale(self.image, (size, size)), (pos[0] * size, pos[1] * size))
 
@@ -131,7 +134,7 @@ class Manifold:
         choice.tiles = [choice.tiles[np.random.randint(len(choice.tiles))]]
 
 
-        print("--- collapsed index", minIndex, "---")
+        # print("--- collapsed index", minIndex, "---")
 
         # propagate the changes
         
@@ -171,7 +174,7 @@ class Manifold:
         theirOptions.tiles = [tile for i, tile in enumerate(theirOptions.tiles) if not to_be_removed[i]]
         
         # if we removed some, propagate the changes later
-        print("remove:", to_be_removed.astype(int).tolist())
+        # print("remove:", to_be_removed.astype(int).tolist())
         return to_be_removed.any()
                     
 
@@ -180,12 +183,12 @@ class Manifold:
     def Propagate(manifold : "Manifold", index : int) -> "Manifold":
         """Given a `Manifold` and an index into a `TileCollection`, will ensure that all neighbouring `TileCollection`s are compatible with the change at the given index, by reducing their possible states."""
         
-        print("Propagated to", index)
+        # print("Propagated to", index)
 
         ourOptions = manifold.collections[index]
         changeList : List[TileCollection] = []
 
-        print("check left")
+        # print("check left")
         # check left
         if (index % manifold.width) > 0:
             leftOptions = manifold.collections[index - 1]
@@ -195,7 +198,7 @@ class Manifold:
             elif Manifold.eliminateTiles(ourOptions, 3, leftOptions):
                     changeList.append(index - 1)
                 
-        print("check right")
+        # print("check right")
         # check right
         if (index % manifold.width) < manifold.width - 1:
             rightOptions = manifold.collections[index + 1]
@@ -205,7 +208,7 @@ class Manifold:
             elif Manifold.eliminateTiles(ourOptions, 1, rightOptions):
                 changeList.append(index + 1)
         
-        print("check above")
+        # print("check above")
         # check above
         if index >= manifold.width:
             aboveOptions = manifold.collections[index - manifold.width]
@@ -215,7 +218,7 @@ class Manifold:
             elif Manifold.eliminateTiles(ourOptions, 0, aboveOptions):
                 changeList.append(index - manifold.width)
 
-        print("check below")
+        # print("check below")
         # check below
         if index < manifold.width * (manifold.height - 1):
             belowOptions = manifold.collections[index + manifold.width]
@@ -227,7 +230,7 @@ class Manifold:
 
 
         # recursive call to propagate if necessary
-        print(f"changeList from {index}:", changeList)
+        # print(f"changeList from {index}:", changeList)
 
         for tileCollection in changeList:
             manifold = Manifold.Propagate(manifold, tileCollection)
