@@ -1,0 +1,17 @@
+dataFolder:flower_tiles
+data:tile_data_limited.csv
+
+g:soil 0
+r:root 0
+i:straight 0
+a:air 0
+
+8x6
+aaaaaa
+a    a
+a    a
+a    a
+a    a
+aaaiaa
+
+rggggg
