@@ -142,8 +142,8 @@ class TileCollection:
             topleft = coords * size
             right = np.array([1, 0]) * size
             down = np.array([0, 1]) * size
-            pygame.draw.line(screen, (255, 0, 0), topleft, topleft + right + down, width=size//30 )
-            pygame.draw.line(screen, (255, 0, 0), topleft+down, topleft + right, width=size//30 )
+            pygame.draw.line(screen, (255, 0, 0), topleft, topleft + right + down, width=int(size/30) )
+            pygame.draw.line(screen, (255, 0, 0), topleft+down, topleft + right, width=int(size/30) )
 
         
 

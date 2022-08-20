@@ -1,6 +1,6 @@
 amount,name,pattern,rotations,group
 0,blue_flower.png,aapa,0,p
-0,red_flower.png,aapa,013,p
+1,red_flower.png,aapa,013,p
 0,leaf_side.png,aapa,0,p
 0,leaf_straight.png,aapa,13,p
 1,root.png,pggg,0,p

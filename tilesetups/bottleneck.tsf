@@ -6,12 +6,12 @@ r:root 0
 i:straight 0
 a:air 0
 
-8x6
-aaaaaa
-a    a
-a    a
-a    a
-a    a
-aaaiaa
+8x8
+aaaaaaaa
+a      a
+a  i   a
+a  i   a
+a  i   a
+a      a
 
-rggggg
+ggrgrggg
