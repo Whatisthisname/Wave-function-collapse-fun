@@ -6,11 +6,11 @@ Run the `WFC_tile_metadata.ipynb` notebook. Advance with space. Exit with escape
 ## Sample output (`flower_tiles`)
 The smaller tiles represent the set of possible outcomes of that tile. Notice how initially the bottom row could be soil, but not later on, as a stalk has been placed in that row. Pressing space will take one of those undecided tiles with fewest options and choose one randomly, propagating the new constraint to its adjacent tiles. This can lead to multiple tiles being placed with a single space-press, because of limited options.
 
-<img src="flower_tiles/sd.png" style="float: left; width: 15%; margin-right: 1%; margin-bottom: 0.5em;">
-<img src="flower_tiles/sd1.png" style="float: left; width: 15%; margin-right: 1%; margin-bottom: 0.5em;">
-<img src="flower_tiles/sd2.png" style="float: left; width: 15%; margin-right: 1%; margin-bottom: 0.5em;">
-<img src="flower_tiles/sd3.png" style="float: left; width: 15%; margin-right: 1%; margin-bottom: 0.5em;">
-<img src="flower_tiles/sd4.png" style="float: left; width: 15%; margin-right: 1%; margin-bottom: 0.5em;">
+<img src="flower_tiles/sd.png" style="float: left; width: 30%; margin-right: 1%; margin-bottom: 0.5em;">
+<img src="flower_tiles/sd1.png" style="float: left; width: 30%; margin-right: 1%; margin-bottom: 0.5em;">
+<img src="flower_tiles/sd2.png" style="float: left; width: 30%; margin-right: 1%; margin-bottom: 0.5em;">
+<img src="flower_tiles/sd3.png" style="float: left; width: 30%; margin-right: 1%; margin-bottom: 0.5em;">
+<img src="flower_tiles/sd4.png" style="float: left; width: 30%; margin-right: 1%; margin-bottom: 0.5em;">
 <p style="clear: both;">
 
 ## Using TileSetupFiles (`.tsf`) to impose constraints on initizaliation
