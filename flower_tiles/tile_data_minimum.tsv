@@ -1,0 +1,8 @@
+amount	name	pattern	rotations	attributes
+1	"red_flower.png"	"aapa"	0123	{"color":("graph", "p", "red")}
+1	"blue_flower.png"	"aapa"	0123	{"color":("graph", "p", "blue")}
+1	"root.png"	"pggg"	0	"{}"
+1	"turn.png"	"aapp"	0123	"{}"
+1	"straight.png"	"papa"	01	"{}"
+1	"soil.png"	"aggg"	0	"{}"
+1	"air.png"	"aaaa"	0	"{}"

@@ -1,9 +1,11 @@
+import ast
 from distutils.dir_util import copy_tree
 import os
-from typing import Dict, List
+from typing import Any, Dict, List
 import numpy as np
 import pygame
 import pandas as pd
+import json
 
 
 class Tile:
@@ -14,8 +16,7 @@ class Tile:
 
     graph : "TileGraph"
     graphRule = None
-    # allegiance : str
-    # groupType = None
+    attrDict : Dict[str, Any] = {}
 
     def __init__(self, sidePatterns : List, **kws) -> None:
         for i in range(len(sidePatterns)):
@@ -26,7 +27,7 @@ class Tile:
         self.sidePatterns = sidePatterns
     
     def draw(self, screen : pygame.surface, coords : np.array, size : int) -> None:
-
+        "default draw method, draws the side patterns"
         dirs = [np.array([0, -1]), np.array([1, 0]), np.array([0, 1]), np.array([-1, 0])]
         centerPos : np.array = (coords + np.ones(2)*0.5) * size
 
@@ -49,6 +50,14 @@ class Tile:
                 end = startPos + lineDir * (j+1)
                 pygame.draw.line(screen, (np.cumsum(np.ones(3)*col)) % 256, start, end, int(lineWidth))
 
+    def draw_attrs(self, screen : pygame.surface, coords : np.array, size : int) -> None:
+
+        text = str.replace(self.attrDict.__str__(), ",", "\n")
+        text = self.attrDict.__str__()
+        my_font = pygame.font.SysFont('Comic Sans MS', 30)
+        text_surface = my_font.render(text, True, (0, 0, 0))
+        screen.blit(text_surface, (coords[0] * size, coords[1] * size))
+
     def OnRotated(self) -> None:
         """override to make mutable state such as images rotate along"""
         pass
@@ -56,6 +65,7 @@ class Tile:
     def copy(self) -> 'Tile':
         newtile = Tile(self.sidePatterns.copy())
         newtile.id = self.id
+        newtile.attrDict = self.attrDict.copy()
         return newtile
 
     def rot90(tile : "Tile") -> "Tile":
@@ -63,14 +73,17 @@ class Tile:
         tile.OnRotated()
         return tile
 
+
+
     @staticmethod
     def dataToTiles(dataRow : pd.Series, tileFolderPath : str = "") -> List["Tile"]:
-        
+        "Takes a row from a data.csv and an image folder, and returns a list of the rotated tiles, with the attributes of the data"
         if int(dataRow["amount"]) == 0: return []
 
         pattern = list(dataRow["pattern"])
         surface = pygame.image.load(os.path.join(tileFolderPath, dataRow['name'])).convert_alpha()   
         rotations = str(dataRow["rotations"])
+        attributes : Dict = ast.literal_eval(dataRow["attributes"])
         id = ".".join(dataRow['name'].split(".")[:-1]) # the name without the file extension
         
         if rotations is None or rotations == "": # auto rotate all and remove versions that are the same
@@ -96,20 +109,21 @@ class Tile:
 
         for tile in output:
             tile.id = id
+            tile.attrDict = attributes.copy()
 
         return output
 
 class ImageTile (Tile):
 
-    image : pygame.surface
+    image : pygame.Surface
     imageRotation : int = 0
 
-    def __init__(self, sidePatterns : List, image_surface : pygame.surface) -> None:
+    def __init__(self, sidePatterns : List, image_surface : pygame.Surface) -> None:
         super().__init__(sidePatterns)
         self.image = image_surface
         self.imageRotation = 0
 
-    def draw(self, screen : pygame.surface, pos : np.array, size : int) -> None:
+    def draw(self, screen : pygame.Surface, pos : np.array, size : int) -> None:
         screen.blit(pygame.transform.rotate(pygame.transform.smoothscale(self.image, (size, size)), -90 * self.imageRotation), (pos[0] * size, pos[1] * size))
 
     def OnRotated(self) -> None:
@@ -119,6 +133,7 @@ class ImageTile (Tile):
         newtile = ImageTile(self.sidePatterns.copy(), self.image)
         newtile.imageRotation = self.imageRotation
         newtile.id = self.id
+        newtile.attrDict = self.attrDict.copy()
         return newtile
 
 
@@ -129,7 +144,7 @@ class TileCollection:
     def __init__(self, tiles : List[Tile]) -> None:
         self.tiles = tiles
 
-    def draw(self, screen : pygame.surface, coords : np.array, size : int) -> None:
+    def draw(self, screen : pygame.Surface, coords : np.array, size : int) -> None:
         grid = np.ceil(np.sqrt(len(self.tiles)))
 
         startPos = coords * size
@@ -145,10 +160,28 @@ class TileCollection:
             pygame.draw.line(screen, (255, 0, 0), topleft, topleft + right + down, width=int(size/30) )
             pygame.draw.line(screen, (255, 0, 0), topleft+down, topleft + right, width=int(size/30) )
 
+    def draw_attrs(self, screen : pygame.Surface, coords: np.array, size : int) -> None:
+        if self.tiles.__len__() != 1 and False:
+            return
+        elif False:
+            # startPos = coords * size
+            # down = np.array([0, 1])
+            # right = np.array([1, 0])
+            self.tiles[0].draw_attrs(screen, coords, size)
+        else:
+            text = [x.attrDict.__str__() for x in self.tiles]
+            fontsize = 10
+            my_font = pygame.font.SysFont('Comic Sans MS', fontsize)
+            for i, line in enumerate(text):
+                text_surface = my_font.render(line, True, (0, 0, 0))
+                screen.blit(text_surface, (coords[0] * size, coords[1] * size + i * fontsize))
         
 
 class TileGraph:
-    openPoints : TileCollection
+    checkPoints : List[TileCollection] = []
+    "A List of the points that should be updated whenever something changes"
+
+
 
 class Manifold:
 
@@ -231,8 +264,22 @@ class Manifold:
                 if not sidePatternFits: continue
 
                 # check custom rule if we have it
-                if ourTile.graphRule is not None and not ourTile.graphRule(theirTile, sideIdx):
-                    continue
+                ourColor = ourTile.attrDict.get("color")
+                if ourColor is not None:
+                    if ourColor[1] not in ourSide:
+                        theirs_fits = True
+                        break
+                    else:
+                        theirColor = theirTile.attrDict.get("color")
+                        if theirColor is not None:
+                            if theirColor[2] == ourColor[2]:
+                                theirs_fits = True
+                                break
+                            else: continue
+                        else: # if theirColor is None
+                            theirTile.attrDict["color"] = ourColor
+                            theirs_fits = True
+                            break
                 else:
                     theirs_fits = True
                     break
@@ -335,7 +382,7 @@ class TileSetupFile:
 
             tileDataFolder = fileLines[0].split(":")[1].strip()
             tileDataName = fileLines[1].split(":")[1].strip()
-            tileDataFrame = pd.read_csv(os.path.join(tileDataFolder, tileDataName) , header=0, dtype=str)
+            tileDataFrame = pd.read_csv(os.path.join(tileDataFolder, tileDataName) , header=0, dtype=str, sep="\t")
             
 
             assert(fileLines[2]=="\n")
