@@ -14,17 +14,15 @@ class Tile:
 
     sidePatterns : List = []
 
-    graph : "TileGraph"
-    graphRule = None
     attrDict : Dict[str, Any] = {}
 
     def __init__(self, sidePatterns : List, **kws) -> None:
         for i in range(len(sidePatterns)):
-            # check if side has length attribute
-            # print("dab")
+            # check if side has length attribute; sidepattern must be iterable, so wrap it in list if it is single element
             if not hasattr(sidePatterns[i], '__len__'):
                 sidePatterns[i] = [sidePatterns[i]]
         self.sidePatterns = sidePatterns
+        self.graph : TileGraph = []
     
     def draw(self, screen : pygame.surface, coords : np.array, size : int) -> None:
         "default draw method, draws the side patterns"
@@ -169,7 +167,7 @@ class TileCollection:
             # right = np.array([1, 0])
             self.tiles[0].draw_attrs(screen, coords, size)
         else:
-            text = [x.attrDict.__str__() for x in self.tiles]
+            text = [x.attrDict.__str__() for x in self.tiles] #!  ALSO PRINT ID OF THE GRAPH IF POSSIBLE
             fontsize = 10
             my_font = pygame.font.SysFont('Comic Sans MS', fontsize)
             for i, line in enumerate(text):
@@ -250,55 +248,72 @@ class Manifold:
         to_be_removed = np.zeros(len(theirOptions.tiles), dtype=bool)
         
         towardsOtherSideIdx = (sideIdx+2)%4
-        # if any of their tiles don't fit ours, we will remove it from their set.
-        for i, theirTile in enumerate(theirOptions.tiles):
+
+        if len(ourOptions.tiles) == 1: #if we are collapsed
+            ourTile = ourOptions.tiles[0]
+            # compare sidepatterns
+            for i, theirTile in enumerate(theirOptions.tiles):
+                if theirTile.sidePatterns[towardsOtherSideIdx] != ourTile.sidePatterns[sideIdx]: # if we have different patters:
+                    to_be_removed[i] = True
             
-            theirs_fits = False
-            for ourTile in ourOptions.tiles:
-                ourSide = ourTile.sidePatterns[sideIdx]
+            # enforce attributes
+            for i, theirTile in enumerate(theirOptions.tiles):
+                if to_be_removed[i]: continue
                 
+                # check if object keeps track of "graph"
+                ourGraphRule = ourTile.attrDict.get("graph")
+                if ourGraphRule is None: continue
 
-                # compare side-patterns
-                theirSide = theirTile.sidePatterns[towardsOtherSideIdx]
-                sidePatternFits = ourSide == theirSide
-                if not sidePatternFits: continue
+                if ourGraphRule[0] not in ourTile.sidePatterns[sideIdx]: continue # if the edge-type is not in the side pattern, rule does not apply
+                    
+                # merge graphs - they get ours, because we are already collapsed, so their graph must involve ours, but not vice-versa
+                theirTile.graph = list(set(theirTile.graph) | set(ourTile.graph)) # union
 
-                # check custom rule if we have it
-                ourColor = ourTile.attrDict.get("color")
-                if ourColor is not None:
-                    if ourColor[1] not in ourSide:
-                        theirs_fits = True
-                        break
-                    else:
-                        theirColor = theirTile.attrDict.get("color")
-                        if theirColor is not None:
-                            if theirColor[2] == ourColor[2]:
-                                theirs_fits = True
-                                break
-                            else: continue
-                        else: # if theirColor is None
-                            theirTile.attrDict["color"] = ourColor
-                            theirs_fits = True
-                            break
-                else:
-                    theirs_fits = True
-                    break
+                theirGraphRule = theirTile.attrDict.get("graph")
 
-            if not theirs_fits:
-                # mark their tile for removal
-                to_be_removed[i] = True
+                if theirGraphRule is None: # if they have no graph, they will now track the same as ours
+                    theirTile.attrDict["graph"] = ourGraphRule
+                    continue
+                    
+                if theirGraphRule[1] == ourGraphRule[1]: continue# if they are same type all is good.
+                else: to_be_removed[i] = True # otherwise remove it
 
+        else:
+            # if any of their tiles fit None of ours, we will remove it from their set.
+            for i, theirTile in enumerate(theirOptions.tiles):
+                
+                theirs_fits = False
+                for ourTile in ourOptions.tiles:
+                    
+                    # compare side-patterns
+                    ourSide = ourTile.sidePatterns[sideIdx]
+                    theirSide = theirTile.sidePatterns[towardsOtherSideIdx]
+                    if not ourSide == theirSide: continue
 
-        # # invoke custom tile elimination rule
-        # if ourTile.customRule is not None:
-        #     ourTile.customRule(their)
-            
+                    # check graph rule
+                    ourGraphRule = ourTile.attrDict.get("graph")
+                    if ourGraphRule is None:  # if we have no rule
+                        theirs_fits = True; break
+                    if ourGraphRule[1] is None: # if we do not have limitations on connectivity
+                        theirs_fits = True; break
+                    if ourGraphRule[0] not in ourSide: # graph not connected - rule not applicable, so fits
+                        theirs_fits = True; break
+                    theirGraphRule = theirTile.attrDict.get("graph")
+                    if theirGraphRule is None: # it fits
+                        theirs_fits = True; break
+                    if theirGraphRule[1] is None:
+                        theirs_fits = True; break
+                    if theirGraphRule[1] != ourGraphRule[1]: # if different colors, incompatible
+                        continue;
+
+                if not theirs_fits:
+                    # mark their tile for removal
+                    to_be_removed[i] = True
+
         # remove the marked tiles
         theirOptions.tiles = [tile for i, tile in enumerate(theirOptions.tiles) if not to_be_removed[i]]
 
-        
         # if we removed some, propagate the changes later
-        # print("remove:", to_be_removed.astype(int).tolist())
         return to_be_removed.any()
                     
     @staticmethod

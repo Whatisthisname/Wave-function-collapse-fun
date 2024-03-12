@@ -3,6 +3,13 @@ A project in which I try to place tiles correctly under constraints. In the curr
 ## See it for yourself:
 Run the `WFC_tile_metadata.ipynb` notebook. Advance with space. Exit with escape. 
 
+## Sample output (`carcarssonne_tiles`)
+These tiles are not included on the repo for copyright reasons, I photographed them all with my phone and then ran the algoritm.
+
+<img src="carcarssonne.png" style="float: left; width: 30%; margin-right: 1%; margin-bottom: 0.5em;">
+<img src="cc_finished.png" style="float: left; width: 30%; margin-right: 1%; margin-bottom: 0.5em;">
+<p style="clear: both;">
+
 ## Sample output (`flower_tiles`)
 The smaller tiles represent the set of possible outcomes of that tile. Notice how initially the bottom row could be soil, but not later on, as a stalk has been placed in that row. Pressing space will take one of those undecided tiles with fewest options and choose one randomly, propagating the new constraint to its adjacent tiles. This can lead to multiple tiles being placed with a single space-press, because of limited options.
 
@@ -59,5 +66,6 @@ If we advance the constraint propagation by choosing randomly from the possible 
 
 _[After 7 space-presses; after 10 more; until finished]:_
 
-## Credit
-Shoutout to pygame and mxgmn
+
+### Attribution
+Shoutout to pygame and @mxgmn
